@@ -9,13 +9,13 @@ Practice technical interviews and get instant AI-powered feedback on your answer
 - **Deployment:** Vercel
 
 ## Features
-🎤 Record answers via browser microphone (up to 2 minutes)
-🔊 Groq Whisper automatically transcribes audio to text
-🤖 GPT-4o-mini grades on 5 parameters: Overall, Communication, Content, Confidence, Relevance
-💡 Specific strengths and improvement tips after every answer
-📝 Sample better answer from AI
-📊 Session history with score tracking
-🗂️ 15 questions across HR, Technical, and DSA categories
+- 🎤 Record answers via browser microphone (up to 2 minutes)
+- 🔊 Groq Whisper automatically transcribes audio to text
+- 🤖 GPT-4o-mini grades on 5 parameters: Overall, Communication, Content, Confidence, Relevance
+- 💡 Specific strengths and improvement tips after every answer
+- 📝 Sample better answer from AI
+- 📊 Session history with score tracking
+- 🗂️ 15 questions across HR, Technical, and DSA categories
 
 ## Setup
 
