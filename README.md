@@ -45,21 +45,28 @@ An AI-powered mock interview platform — record your answer, get it transcribed
 
 ## Project Structure
 
+```
 mock-interview-coach/
 ├── app/
-│ ├── page.tsx → Homepage
-│ ├── interview/page.tsx → Recording + feedback flow
-│ ├── history/page.tsx → Past sessions
-│ └── api/
-│ ├── transcribe/route.ts → Groq Whisper transcription
-│ ├── grade/route.ts → OpenRouter LLM grading
-│ └── history/route.ts → Fetch sessions from Supabase
+│   ├── page.tsx
+│   ├── interview/
+│   │   └── page.tsx
+│   ├── history/
+│   │   └── page.tsx
+│   └── api/
+│       ├── transcribe/
+│       │   └── route.ts
+│       ├── grade/
+│       │   └── route.ts
+│       └── history/
+│           └── route.ts
 ├── components/
-│ ├── Recorder.tsx → MediaRecorder UI component
-│ └── FeedbackCard.tsx → Score + feedback display
+│   ├── Recorder.tsx
+│   └── FeedbackCard.tsx
 └── lib/
-├── supabase.ts → Supabase client
-└── questions.ts → Question bank (15 questions)
+    ├── supabase.ts
+    └── questions.ts
+```
 
 
 ---
