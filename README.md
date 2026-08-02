@@ -1,110 +1,81 @@
 # AI Mock Interview Coach
 
-An AI-powered mock interview platform where you record your answers, get them transcribed, and receive detailed feedback on communication, content, and confidence.
-
-## Live Demo
-> Coming soon (Vercel deployment)
+Practice technical interviews and get instant AI-powered feedback on your answers.
 
 ## Tech Stack
-
-| Layer | Technology |
-|---|---|
-| Frontend + Backend | Next.js 14 (App Router) |
-| Audio Recording | MediaRecorder API (browser built-in) |
-| Transcription | Groq Whisper (free, fast) |
-| LLM Grading | OpenRouter → GPT-4o-mini |
-| Database | Supabase (PostgreSQL) |
-| Deployment | Vercel |
+- **Frontend + Backend:** Next.js 16 (App Router)
+- **Grading:** OpenRouter chat completions
+- **Database:** Supabase (PostgreSQL)
+- **Deployment:** Vercel
 
 ## Features
-
-- 🎤 Record answers via browser microphone (up to 2 minutes)
-- 🔊 Groq Whisper automatically transcribes audio to text
-- 🤖 GPT-4o-mini grades on 5 parameters: Overall, Communication, Content, Confidence, Relevance
-- 💡 Specific strengths and improvement tips after every answer
-- 📝 Sample better answer from AI
-- 📊 Session history with score tracking
-- 🗂️ 15 questions across HR, Technical, and DSA categories
-
-## Project Structure
-
-mock-interview-coach/
-├── app/
-│ ├── page.tsx → Homepage
-│ ├── interview/page.tsx → Recording + feedback flow
-│ ├── history/page.tsx → Past sessions
-│ └── api/
-│ ├── transcribe/ → Groq Whisper transcription
-│ ├── grade/ → OpenRouter LLM grading
-│ └── history/ → Fetch sessions from Supabase
-├── components/
-│ ├── Recorder.tsx → MediaRecorder UI
-│ └── FeedbackCard.tsx → Score display
-└── lib/
-├── supabase.ts → Supabase client
-└── questions.ts → Question bank (15 questions)
-
+🎤 Record answers via browser microphone (up to 2 minutes)
+🔊 Groq Whisper automatically transcribes audio to text
+🤖 GPT-4o-mini grades on 5 parameters: Overall, Communication, Content, Confidence, Relevance
+💡 Specific strengths and improvement tips after every answer
+📝 Sample better answer from AI
+📊 Session history with score tracking
+🗂️ 15 questions across HR, Technical, and DSA categories
 
 ## Setup
 
-### 1. Clone the repo
-```bash
-git clone https://github.com/prateekchaurasia11-lab/mock-interview-coach.git
-cd mock-interview-coach
-```
-
-### 2. Install dependencies
+### 1. Install dependencies
 ```bash
 npm install
 ```
 
-### 3. Get API keys
-- **Groq** (free): [console.groq.com](https://console.groq.com) → API Keys → Create
-- **OpenRouter**: [openrouter.ai/keys](https://openrouter.ai/keys) → Create key
-- **Supabase**: [supabase.com](https://supabase.com) → New project → Settings → API
+### 2. Get an OpenRouter API key
+1. Go to openrouter.ai
+2. Create an API key
+3. Choose a model slug, or keep the default `openai/gpt-4o-mini`
 
-### 4. Setup environment variables
+### 3. Optional: Set up Supabase
+1. Create an account at supabase.com
+2. Create a new project, then copy the Project URL and anon key
+3. Go to SQL Editor and run `supabase-schema.sql`
+
+### 4. Environment variables
 ```bash
 cp .env.local.example .env.local
+# Fill in your actual keys
 ```
-Fill in your keys in `.env.local`.
 
-### 5. Setup Supabase database
-Run `supabase-schema.sql` in Supabase → SQL Editor → New Query → Run.
-
-### 6. Run locally
-```bash
-npm run dev
-```
-Open [http://localhost:3000](http://localhost:3000)
-
-## Environment Variables
-
+Minimum for feedback:
 ```env
-NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
 OPENROUTER_API_KEY=your-openrouter-api-key
 OPENROUTER_MODEL=openai/gpt-4o-mini
-GROQ_API_KEY=your-groq-api-key
 ```
 
-## How It Works
+Optional history storage:
+```env
+NEXT_PUBLIC_SUPABASE_URL=your-supabase-project-url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
+```
 
-1. User selects a category (HR / Technical / DSA)
-2. Question is displayed with a hint
-3. User records their answer (up to 2 minutes)
-4. Audio is sent to Groq Whisper → transcript generated
-5. Transcript + question sent to GPT-4o-mini → JSON feedback
-6. Scores, strengths, improvements, and better answer displayed
-7. Session saved to Supabase for history tracking
+### 5. Run locally
+```bash
+npm run dev
+# Open http://localhost:3000
+```
 
-## Made By
+## Deploy to Vercel
+1. Push to GitHub
+2. Import repo on vercel.com
+3. Add environment variables in Vercel dashboard
+4. Deploy
 
-Prateek Chaurasia — Final Year B.Tech IT, HBTU Kanpur
-
-Ctrl+S → phir push karo:
-
-powershell
-git add README.md
-git commit -m "docs: update README with full setup guide"
-git push origin main
+## Project Structure
+```text
+app/
+  page.tsx              - Homepage
+  interview/page.tsx    - Typed answer and feedback flow
+  history/page.tsx      - Past sessions
+  api/
+    grade/route.ts      - OpenRouter grading
+    history/route.ts    - Fetch sessions
+components/
+  FeedbackCard.tsx      - Score display
+lib/
+  supabase.ts           - Supabase client
+  questions.ts          - Question bank
+```
