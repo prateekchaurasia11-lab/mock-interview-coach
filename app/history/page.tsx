@@ -1,13 +1,22 @@
 'use client'
+
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+
+type Feedback = {
+  communication?: number
+  content_quality?: number
+  confidence?: number
+  verdict?: string
+  improvements?: string[]
+}
 
 type Session = {
   id: string
   question: string
   transcript: string
   score: number
-  feedback: any
+  feedback: Feedback
   created_at: string
 }
 
@@ -18,7 +27,7 @@ export default function HistoryPage() {
 
   useEffect(() => {
     fetch('/api/history')
-      .then((r) => r.json())
+      .then((response) => response.json())
       .then((data) => {
         setSessions(Array.isArray(data) ? data : [])
         setLoading(false)
@@ -26,94 +35,103 @@ export default function HistoryPage() {
       .catch(() => setLoading(false))
   }, [])
 
-  const scoreColor = (s: number) =>
-    s >= 8 ? '#22c55e' : s >= 6 ? '#f59e0b' : '#ef4444'
+  const scoreColor = (score: number) =>
+    score >= 8 ? '#4f7f52' : score >= 6 ? '#b7791f' : '#b25244'
 
-  const avg = sessions.length > 0
-    ? Math.round(sessions.reduce((a, s) => a + (s.score ?? 0), 0) / sessions.length * 10) / 10
+  const average = sessions.length > 0
+    ? Math.round(sessions.reduce((total, session) => total + (session.score ?? 0), 0) / sessions.length * 10) / 10
     : 0
 
   return (
     <main className="history-main">
       <div className="history-topbar">
-        <Link href="/" className="back-link">← Home</Link>
-        <h1 className="history-title">Practice History</h1>
+        <Link href="/" className="back-link">Back home</Link>
+        <div>
+          <span className="eyebrow">Practice archive</span>
+          <h1 className="history-title">Interview history</h1>
+        </div>
       </div>
 
-      {loading && <div className="loading-screen">Loading sessions…</div>}
+      {loading && <div className="loading-screen">Loading sessions...</div>}
 
       {!loading && sessions.length === 0 && (
         <div className="empty-state">
-          <p className="empty-icon">🎤</p>
-          <p className="empty-text">No sessions yet.</p>
-          <Link href="/interview" className="btn-primary">Start your first interview →</Link>
+          <p className="empty-icon">No sessions yet</p>
+          <p className="empty-text">Your completed interview reviews will appear here.</p>
+          <Link href="/interview" className="button button-primary">Start your first interview</Link>
         </div>
       )}
 
       {!loading && sessions.length > 0 && (
         <>
-          <div className="stats-row">
+          <div className="stats-row history-stats">
             <div className="stat-card">
               <div className="stat-num">{sessions.length}</div>
               <div className="stat-label">Sessions</div>
             </div>
             <div className="stat-card">
-              <div className="stat-num" style={{ color: scoreColor(avg) }}>{avg}</div>
-              <div className="stat-label">Avg Score</div>
+              <div className="stat-num" style={{ color: scoreColor(average) }}>{average}</div>
+              <div className="stat-label">Avg score</div>
             </div>
             <div className="stat-card">
-              <div className="stat-num">{sessions.filter((s) => s.score >= 7).length}</div>
+              <div className="stat-num">{sessions.filter((session) => session.score >= 7).length}</div>
               <div className="stat-label">Scored 7+</div>
             </div>
           </div>
 
           <div className="sessions-list">
-            {sessions.map((s) => (
-              <div key={s.id} className="session-card">
-                <div className="session-header"
-                  onClick={() => setExpanded(expanded === s.id ? null : s.id)}>
+            {sessions.map((session) => (
+              <div key={session.id} className="session-card">
+                <button
+                  className="session-header"
+                  onClick={() => setExpanded(expanded === session.id ? null : session.id)}
+                  aria-expanded={expanded === session.id}
+                >
                   <div className="session-info">
-                    <p className="session-question">{s.question}</p>
+                    <p className="session-question">{session.question}</p>
                     <p className="session-date">
-                      {new Date(s.created_at).toLocaleDateString('en-IN', {
-                        day: 'numeric', month: 'short', year: 'numeric',
-                        hour: '2-digit', minute: '2-digit',
+                      {new Date(session.created_at).toLocaleDateString('en-IN', {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
                       })}
                     </p>
                   </div>
                   <div className="session-right">
-                    <div className="session-score" style={{ color: scoreColor(s.score) }}>
-                      {s.score}/10
+                    <div className="session-score" style={{ color: scoreColor(session.score) }}>
+                      {session.score}/10
                     </div>
-                    <div className="session-chevron">{expanded === s.id ? '▲' : '▼'}</div>
+                    <div className="session-chevron">{expanded === session.id ? 'Close' : 'Open'}</div>
                   </div>
-                </div>
+                </button>
 
-                {expanded === s.id && s.feedback && (
+                {expanded === session.id && session.feedback && (
                   <div className="session-detail">
-                    <p className="detail-transcript">{s.transcript}</p>
+                    <p className="detail-transcript">{session.transcript}</p>
                     <div className="detail-scores">
                       {[
-                        ['Communication', s.feedback.communication],
-                        ['Content', s.feedback.content_quality],
-                        ['Confidence', s.feedback.confidence],
-                      ].map(([label, val]) => (
+                        ['Communication', session.feedback.communication],
+                        ['Content', session.feedback.content_quality],
+                        ['Confidence', session.feedback.confidence],
+                      ].map(([label, value]) => (
                         <div key={label as string} className="detail-score-item">
                           <span>{label}</span>
-                          <span style={{ color: scoreColor(val as number), fontWeight: 600 }}>
-                            {val}/10
+                          <span style={{ color: scoreColor(value as number), fontWeight: 700 }}>
+                            {value}/10
                           </span>
                         </div>
                       ))}
                     </div>
-                    {s.feedback.verdict && (
-                      <p className="detail-verdict">🎯 {s.feedback.verdict}</p>
+                    {session.feedback.verdict && (
+                      <p className="detail-verdict">{session.feedback.verdict}</p>
                     )}
-                    {s.feedback.improvements?.length > 0 && (
+                    {session.feedback.improvements && session.feedback.improvements.length > 0 && (
                       <div>
                         <p className="detail-section-label">To improve:</p>
-                        {s.feedback.improvements.map((imp: string, i: number) => (
-                          <p key={i} className="detail-improve-item">→ {imp}</p>
+                        {session.feedback.improvements.map((improvement, index) => (
+                          <p key={index} className="detail-improve-item">{improvement}</p>
                         ))}
                       </div>
                     )}
@@ -126,7 +144,7 @@ export default function HistoryPage() {
       )}
 
       <div className="history-footer">
-        <Link href="/interview" className="btn-primary">Practice Again →</Link>
+        <Link href="/interview" className="button button-primary">Practice again</Link>
       </div>
     </main>
   )

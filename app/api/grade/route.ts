@@ -1,99 +1,74 @@
 import { NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+
+const fillerPattern = /\b(um|uh|like|basically|actually|you know)\b/gi
+const ignoredWords = new Set(['about', 'could', 'would', 'should', 'their', 'there', 'these', 'those', 'what', 'when', 'where', 'which', 'with', 'your'])
+
+function clamp(value: number) {
+  return Math.round(Math.min(10, Math.max(1, value)) * 10) / 10
+}
+
+function localReview(transcript: string, question: string) {
+  const words = transcript.trim().split(/\s+/).filter(Boolean)
+  const fillerCount = transcript.match(fillerPattern)?.length ?? 0
+  const answerWords = new Set(words.map((word) => word.toLowerCase().replace(/[^a-z0-9]/g, '')))
+  const questionKeywords = question
+    .toLowerCase()
+    .split(/\W+/)
+    .filter((word) => word.length > 4 && !ignoredWords.has(word))
+  const overlap = questionKeywords.filter((word) => answerWords.has(word)).length
+
+  const communication = clamp(5.5 + Math.min(2, words.length / 50) - Math.min(2.5, fillerCount * 0.35))
+  const contentQuality = clamp(4.5 + Math.min(4, words.length / 28))
+  const confidence = clamp(6 + (words.length >= 45 ? 1 : 0) - Math.min(3, fillerCount * 0.45))
+  const relevance = clamp(5.5 + Math.min(3, overlap * 0.8))
+  const overallScore = clamp((communication + contentQuality + confidence + relevance) / 4)
+
+  const strengths = [
+    words.length >= 45
+      ? 'You gave the answer enough detail to communicate a complete thought.'
+      : 'You kept the answer direct and easy to follow.',
+    fillerCount <= 2
+      ? 'Your delivery avoided excessive filler language.'
+      : 'You maintained a clear central point throughout the response.',
+  ]
+
+  const improvements = [
+    words.length < 60
+      ? 'Add one specific example, action, and measurable result to make the answer more convincing.'
+      : 'Tighten repeated ideas so the strongest evidence lands sooner.',
+    fillerCount > 2
+      ? 'Pause briefly instead of using filler words; it will make the answer sound more confident.'
+      : 'End with a short sentence that connects your example directly back to the role.',
+  ]
+
+  return {
+    overall_score: overallScore,
+    communication,
+    content_quality: contentQuality,
+    confidence,
+    relevance,
+    strengths,
+    improvements,
+    sample_better_answer: `Start with a direct response to "${question}" Then give one concrete situation, explain the action you personally took, and close with the result and what you learned.`,
+    verdict: overallScore >= 8
+      ? 'A strong response with a clear structure; a sharper result statement would make it interview-ready.'
+      : overallScore >= 6
+        ? 'A solid starting point that will improve with a more specific example and result.'
+        : 'The core idea is present, but the answer needs clearer structure, evidence, and a direct conclusion.',
+  }
+}
 
 export async function POST(request: Request) {
   try {
-    const { transcript, question, category } = await request.json()
+    const { transcript, question } = await request.json()
 
-    if (!transcript || !question) {
-      return NextResponse.json({ error: 'transcript and question required' }, { status: 400 })
+    if (typeof transcript !== 'string' || !transcript.trim() || typeof question !== 'string' || !question.trim()) {
+      return NextResponse.json({ error: 'A transcript and question are required.' }, { status: 400 })
     }
 
-    const apiKey = process.env.OPENROUTER_API_KEY
-    const model = process.env.OPENROUTER_MODEL || 'openai/gpt-4o-mini'
-
-    if (!apiKey) {
-      return NextResponse.json({ error: 'OPENROUTER_API_KEY is not configured' }, { status: 500 })
-    }
-
-    const controller = new AbortController()
-    const timeout = setTimeout(() => controller.abort(), 30000) // 30 sec timeout
-
-
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
-        'Content-Type': 'application/json',
-        'HTTP-Referer': 'https://localhost:3000',
-        'X-Title': 'Mock Interview Coach',
-      },
-      signal: controller.signal,
-      body: JSON.stringify({
-        model,
-        max_tokens: 1000,
-        messages: [
-          {
-            role: 'system',
-            content: `You are an expert interview coach. Evaluate the candidate's answer.
-Return ONLY valid JSON, nothing else:
-{
-  "overall_score": <1-10>,
-  "communication": <1-10>,
-  "content_quality": <1-10>,
-  "confidence": <1-10>,
-  "relevance": <1-10>,
-  "strengths": ["strength 1", "strength 2"],
-  "improvements": ["improvement 1", "improvement 2"],
-  "sample_better_answer": "a better answer example",
-  "verdict": "one sentence verdict"
-}`,
-          },
-          {
-            role: 'user',
-            content: `Category: ${category}\nQuestion: ${question}\nAnswer: ${transcript}`,
-          },
-        ],
-        response_format: { type: 'json_object' },
-      }),
-    })
-
-    clearTimeout(timeout)
-
-    if (!response.ok) {
-      const err = await response.text()
-      console.error('OpenRouter error:', err)
-      return NextResponse.json({ error: `LLM failed: ${err}` }, { status: 500 })
-    }
-
-    const data = await response.json()
-    const content = data.choices?.[0]?.message?.content
-
-    if (!content) {
-      return NextResponse.json({ error: 'Empty response from LLM' }, { status: 500 })
-    }
-
-    const feedback = JSON.parse(content)
-
-    // Save to Supabase — silently fail if error
-    try {
-      await supabase.from('sessions').insert({
-        question,
-        transcript,
-        feedback,
-        score: feedback.overall_score,
-        user_id: 'guest',
-      })
-    } catch (dbErr) {
-      console.warn('Supabase save skipped:', dbErr)
-    }
-
-    return NextResponse.json(feedback)
-  } catch (error: any) {
-    if (error.name === 'AbortError') {
-      return NextResponse.json({ error: 'Request timed out. Please try again.' }, { status: 504 })
-    }
-    console.error('Grading error:', error)
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json(localReview(transcript, question))
+  } catch (error) {
+    console.error('Local grading error:', error)
+    return NextResponse.json({ error: 'Could not review this answer. Please try again.' }, { status: 500 })
   }
 }

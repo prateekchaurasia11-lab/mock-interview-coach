@@ -1,6 +1,6 @@
 'use client'
 
-type Feedback = {
+export type Feedback = {
   overall_score: number
   communication: number
   content_quality: number
@@ -15,28 +15,26 @@ type Feedback = {
 
 export default function FeedbackCard({ feedback }: { feedback: Feedback }) {
   const scores = [
-    { label: 'Overall', value: feedback.overall_score, key: 'overall' },
-    { label: 'Communication', value: feedback.communication, key: 'comm' },
-    { label: 'Content', value: feedback.content_quality, key: 'content' },
-    { label: 'Confidence', value: feedback.confidence, key: 'conf' },
-    { label: 'Relevance', value: feedback.relevance, key: 'rel' },
+    { label: 'Overall', value: feedback.overall_score },
+    { label: 'Communication', value: feedback.communication },
+    { label: 'Content', value: feedback.content_quality },
+    { label: 'Confidence', value: feedback.confidence },
+    { label: 'Relevance', value: feedback.relevance },
   ]
 
   const scoreColor = (s: number) =>
-    s >= 8 ? '#22c55e' : s >= 6 ? '#f59e0b' : '#ef4444'
+    s >= 8 ? '#4f7f52' : s >= 6 ? '#b7791f' : '#b25244'
 
   const scoreLabel = (s: number) =>
     s >= 8 ? 'Strong' : s >= 6 ? 'Good' : s >= 4 ? 'Fair' : 'Weak'
 
   return (
     <div className="feedback-wrap">
-      {/* Verdict banner */}
       <div className="verdict-banner">
-        <span className="verdict-icon">🎯</span>
+        <span className="verdict-icon">Result</span>
         <p className="verdict-text">{feedback.verdict}</p>
       </div>
 
-      {/* Score grid */}
       <div className="score-grid">
         {scores.map(({ label, value }) => (
           <div key={label} className="score-card">
@@ -51,15 +49,13 @@ export default function FeedbackCard({ feedback }: { feedback: Feedback }) {
         ))}
       </div>
 
-      {/* Transcript */}
       <div className="section-block">
-        <h3 className="section-title">Your Answer (Transcript)</h3>
+        <h3 className="section-title">Your answer transcript</h3>
         <p className="transcript-text">{feedback.transcript}</p>
       </div>
 
-      {/* Strengths */}
       <div className="section-block">
-        <h3 className="section-title strength-title">✓ What you did well</h3>
+        <h3 className="section-title strength-title">What you did well</h3>
         <ul className="feedback-list">
           {feedback.strengths.map((s, i) => (
             <li key={i} className="feedback-item strength-item">{s}</li>
@@ -67,9 +63,8 @@ export default function FeedbackCard({ feedback }: { feedback: Feedback }) {
         </ul>
       </div>
 
-      {/* Improvements */}
       <div className="section-block">
-        <h3 className="section-title improve-title">→ What to improve</h3>
+        <h3 className="section-title improve-title">What to improve</h3>
         <ul className="feedback-list">
           {feedback.improvements.map((s, i) => (
             <li key={i} className="feedback-item improve-item">{s}</li>
@@ -77,9 +72,8 @@ export default function FeedbackCard({ feedback }: { feedback: Feedback }) {
         </ul>
       </div>
 
-      {/* Better answer */}
       <div className="section-block better-block">
-        <h3 className="section-title">💡 A stronger answer would sound like</h3>
+        <h3 className="section-title">A stronger answer would sound like</h3>
         <p className="better-text">{feedback.sample_better_answer}</p>
       </div>
     </div>
