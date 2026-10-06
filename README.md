@@ -114,6 +114,24 @@ Open [http://localhost:3000](http://localhost:3000)
 
 ---
 
+## Run the regression tests
+
+Use Node.js 24 LTS and install the locked dependencies before running the tests:
+
+```bash
+npm ci
+npm test
+```
+
+The transcription tests mock Groq responses, so they do not need API keys, a
+microphone, or a Supabase database. They cover recording metadata, invalid
+uploads, provider errors, timeouts, and empty or malformed transcripts.
+
+GitHub Actions runs this suite for pull requests and pushes to `main`. You can
+also run it manually from the repository's Actions tab.
+
+---
+
 ## Deploy to Vercel
 
 1. Push to GitHub
